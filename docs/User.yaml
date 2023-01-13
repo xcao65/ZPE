@@ -34,6 +34,10 @@ paths:
               examples: {}
         '404':
           description: User Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       operationId: get-users-userId
       description: Retrieve the information of the user with the matching user ID.
     patch:
@@ -51,8 +55,16 @@ paths:
               examples: {}
         '403':
           description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: User Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       description: Update the information of an existing user.
       requestBody:
         content:
@@ -71,6 +83,10 @@ paths:
           description: OK
         '404':
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       description: Delete User
   /users:
     post:
@@ -88,13 +104,21 @@ paths:
               examples: {}
         '400':
           description: Missing Required Information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
           description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/NewUser'
             examples: {}
         description: Post the necessary fields for the API to create a new user.
       description: Create a new user.
@@ -107,6 +131,12 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
       description: List Users
 components:
   schemas:
@@ -124,15 +154,47 @@ components:
           type: string
           format: email
         role:
-          type: array
-          description: The role that the user belongs to.
-          items:
-            type: string
-            enum:
-              - Admin
-              - Watcher
-              - Modifier
+          $ref: '#/components/schemas/Role'
       required:
         - name
         - email
         - role
+    NewUser:
+      title: NewUser
+      type: object
+      x-examples: {}
+      x-stoplight:
+        id: 72cf48e60edad
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/Role'
+      required:
+        - name
+        - email
+        - role
+    Error:
+      title: Error
+      x-stoplight:
+        id: v8p727feszoha
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+    Role:
+      title: Role
+      x-stoplight:
+        id: cxxyvttp9kilp
+      type: array
+      items:
+        type: string
+        enum:
+          - Admin
+          - Modifier
+          - Watcher
