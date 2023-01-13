@@ -2,7 +2,7 @@
 
 ZPE User API
 
-### How to Run
+## How to Run
 
 go to root of this repo
 
@@ -27,6 +27,5 @@ POST http://localhost:3000/users
 }
 ```
 
-
-List Users 
+List Users
 GET http://localhost:3000/users
