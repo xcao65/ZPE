@@ -1,0 +1,138 @@
+openapi: 3.0.0
+x-stoplight:
+  id: i2nmjv5fzr7yp
+info:
+  description: users api
+  contact:
+    email: xun.cao@outlook.com
+  title: User
+  version: '1.0'
+tags:
+  - name: user
+servers:
+  - url: 'http://localhost:3000'
+paths:
+  '/users/{userId}':
+    parameters:
+      - schema:
+          type: integer
+        name: userId
+        in: path
+        required: true
+        description: Id of an existing user.
+    get:
+      summary: Get User Info by User ID
+      tags:
+        - user
+      responses:
+        '200':
+          description: User Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples: {}
+        '404':
+          description: User Not Found
+      operationId: get-users-userId
+      description: Retrieve the information of the user with the matching user ID.
+    patch:
+      tags:
+        - user
+      summary: Update User Information
+      operationId: patch-users-userId
+      responses:
+        '200':
+          description: User Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples: {}
+        '403':
+          description: Forbidden
+        '404':
+          description: User Not Found
+      description: Update the information of an existing user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+            examples: {}
+        description: Patch user properties to update.
+    delete:
+      tags:
+        - user
+      summary: ''
+      operationId: delete-users-userId
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not Found
+      description: Delete User
+  /users:
+    post:
+      tags:
+        - user
+      summary: Create New User
+      operationId: post-user
+      responses:
+        '201':
+          description: User Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples: {}
+        '400':
+          description: Missing Required Information
+        '409':
+          description: User already exists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+            examples: {}
+        description: Post the necessary fields for the API to create a new user.
+      description: Create a new user.
+    parameters: []
+    get:
+      tags:
+        - user
+      summary: ''
+      operationId: get-users
+      responses:
+        '200':
+          description: OK
+      description: List Users
+components:
+  schemas:
+    User:
+      title: User
+      type: object
+      x-examples: {}
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the given user.
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: array
+          description: The role that the user belongs to.
+          items:
+            type: string
+            enum:
+              - Admin
+              - Watcher
+              - Modifier
+      required:
+        - name
+        - email
+        - role
