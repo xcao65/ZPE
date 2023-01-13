@@ -12,7 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func createService() http.Handler {
+func main() {
 	// load swagger for request validation
 	swagger, err := userserver.GetSwagger()
 	if err != nil {
@@ -37,7 +37,7 @@ func createService() http.Handler {
 
 	s := &http.Server{
 		Handler: r,
-		Addr:    fmt.Sprintf("0.0.0.0:%d", 8080),
+		Addr:    fmt.Sprintf("0.0.0.0:%d", 3000),
 	}
 
 	log.Fatal(s.ListenAndServe())

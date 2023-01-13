@@ -24,9 +24,10 @@ func NewUserStore() *UserStore {
 // This function wraps sending of an error in the Error format, and
 // handling the failure to marshal that.
 func sendUserStoreError(w http.ResponseWriter, code int, message string) {
+	code_int := &code
 	userErr := Error{
-		Code:    int(code),
-		Message: message,
+		Code:    code_int,
+		Message: &message,
 	}
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(userErr)
@@ -62,7 +63,7 @@ func (u *UserStore) PostUser(w http.ResponseWriter, r *http.Request) {
 	id := genHash(string(newUser.Email))
 	_, ok := u.Users[id]
 	if ok {
-		sendUserStoreError(w, http.StatusBadRequest, "User Already Exist")
+		sendUserStoreError(w, 409, "User Already Exist")
 	}
 
 	var user User
