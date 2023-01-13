@@ -154,7 +154,9 @@ components:
           type: string
           format: email
         role:
-          $ref: '#/components/schemas/Role'
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
       required:
         - name
         - email
@@ -172,7 +174,9 @@ components:
           type: string
           format: email
         role:
-          $ref: '#/components/schemas/Role'
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
       required:
         - name
         - email
@@ -191,10 +195,8 @@ components:
       title: Role
       x-stoplight:
         id: cxxyvttp9kilp
-      type: array
-      items:
-        type: string
-        enum:
-          - Admin
-          - Modifier
-          - Watcher
+      type: string
+      enum:
+        - Admin
+        - Modifier
+        - Watcher

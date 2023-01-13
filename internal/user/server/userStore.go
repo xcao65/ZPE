@@ -7,8 +7,8 @@ import (
 )
 
 type UserStore struct {
-	Users  map[uint32]User
-	NextId uint32
+	Users    map[int]User
+	Priority map[string]int
 }
 
 // Make sure we conform to ServerInterface
@@ -16,8 +16,8 @@ var _ ServerInterface = (*UserStore)(nil)
 
 func NewUserStore() *UserStore {
 	return &UserStore{
-		Users:  make(map[uint32]User),
-		NextId: 1000,
+		Users:    make(map[int]User),
+		Priority: map[string]int{string(Admin): 2, string(Modifier): 1, string(Watcher): 0},
 	}
 }
 
@@ -33,10 +33,17 @@ func sendUserStoreError(w http.ResponseWriter, code int, message string) {
 	json.NewEncoder(w).Encode(userErr)
 }
 
-func genHash(s string) uint32 {
+func genHash(s string) int {
 	h := fnv.New32a()
 	h.Write([]byte(s))
-	return h.Sum32()
+	return int(h.Sum32())
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func (u *UserStore) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -64,6 +71,7 @@ func (u *UserStore) PostUser(w http.ResponseWriter, r *http.Request) {
 	_, ok := u.Users[id]
 	if ok {
 		sendUserStoreError(w, 409, "User Already Exist")
+		return
 	}
 
 	var user User
@@ -78,8 +86,57 @@ func (u *UserStore) PostUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-func (u *UserStore) DeleteUsersUserId(w http.ResponseWriter, r *http.Request, userId int) {}
+func (u *UserStore) DeleteUsersUserId(w http.ResponseWriter, r *http.Request, userId int) {
+	_, ok := u.Users[userId]
+	if !ok {
+		sendUserStoreError(w, 404, "User does not exist")
+		return
+	}
+	delete(u.Users, userId)
+}
 
-func (u *UserStore) GetUsersUserId(w http.ResponseWriter, r *http.Request, userId int) {}
+func (u *UserStore) GetUsersUserId(w http.ResponseWriter, r *http.Request, userId int) {
+	user, ok := u.Users[userId]
+	if !ok {
+		sendUserStoreError(w, 404, "User does not exist")
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
+}
 
-func (u *UserStore) PatchUsersUserId(w http.ResponseWriter, r *http.Request, userId int) {}
+func (u *UserStore) PatchUsersUserId(w http.ResponseWriter, r *http.Request, userId int) {
+	var newUser NewUser
+	if err := json.NewDecoder(r.Body).Decode(&newUser); err != nil {
+		sendUserStoreError(w, http.StatusBadRequest, "Invalid format for NewUser")
+		return
+	}
+
+	user, ok := u.Users[userId]
+	if !ok {
+		sendUserStoreError(w, 404, "User does not exist")
+		return
+	}
+
+	oldRoles := make(map[string]int)
+	var maxP int
+	maxP = 0
+	for _, role := range user.Role {
+		rP := u.Priority[string(role)]
+		maxP = max(maxP, rP)
+		oldRoles[string(role)] = rP
+	}
+	for _, role := range newUser.Role {
+		_, exist := oldRoles[string(role)]
+		if !exist {
+			if u.Priority[string(role)] > maxP {
+				sendUserStoreError(w, 403, "You don't have previllige to add this role")
+				return
+			}
+			user.Role = append(user.Role, role)
+			oldRoles[string(role)] = u.Priority[string(role)]
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
+}

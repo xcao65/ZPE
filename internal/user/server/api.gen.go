@@ -19,6 +19,13 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// Defines values for Role.
+const (
+	Admin    Role = "Admin"
+	Modifier Role = "Modifier"
+	Watcher  Role = "Watcher"
+)
+
 // Error defines model for Error.
 type Error struct {
 	Code    *int    `json:"code,omitempty"`
@@ -29,11 +36,11 @@ type Error struct {
 type NewUser struct {
 	Email openapi_types.Email `json:"email"`
 	Name  string              `json:"name"`
-	Role  Role                `json:"role"`
+	Role  []Role              `json:"role"`
 }
 
 // Role defines model for Role.
-type Role = []string
+type Role string
 
 // User defines model for User.
 type User struct {
@@ -42,7 +49,7 @@ type User struct {
 	// Id Unique identifier for the given user.
 	Id   *int   `json:"id,omitempty"`
 	Name string `json:"name"`
-	Role Role   `json:"role"`
+	Role []Role `json:"role"`
 }
 
 // PostUserJSONRequestBody defines body for PostUser for application/json ContentType.
@@ -322,22 +329,22 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
